@@ -468,6 +468,67 @@ def analyze_image(image, api_key, enable_xai=True, diagnosis_context=""):
             "date": datetime.now().isoformat(),
             "has_diagnosis_context": False
         }
+import json
+
+def generate_differential_diagnosis(analysis_text, findings, api_key):
+    """
+    Generates a structured differential diagnosis with probabilities and evidence.
+    """
+    try:
+        import google.generativeai as genai
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-2.5-pro')
+
+        # This is the key novel prompt
+        findings_bullets = "\n- ".join(findings)
+        prompt = f"""
+        You are a master diagnostician AI. Based on the following comprehensive analysis and key findings, generate a structured differential diagnosis.
+
+        --- Full Analysis Text ---
+        {analysis_text}
+        --- Key Findings ---
+        - {findings_bullets}
+        ---
+
+        Your task is to return a JSON object containing a single key "diagnoses".
+        This key should hold a list of potential diagnoses. For each diagnosis in the list, provide:
+        1. "condition": The name of the medical condition.
+        2. "probability": A float between 0.0 and 1.0 representing your confidence in this diagnosis. The sum of all probabilities should ideally be close to 1.0.
+        3. "evidence": A JSON array of strings, where each string is a direct quote or a summarized finding from the provided analysis text that supports this specific diagnosis.
+        4. "rationale": A brief sentence explaining why the evidence points to this condition.
+
+        Example of the required JSON output format:
+        {{
+            "diagnoses": [
+                {{
+                    "condition": "Bacterial Pneumonia",
+                    "probability": 0.75,
+                    "evidence": ["Consolidation in the right lower lobe", "Presence of air bronchograms"],
+                    "rationale": "The presence of consolidation is a classic sign of pneumonia."
+                }},
+                {{
+                    "condition": "Pulmonary Edema",
+                    "probability": 0.15,
+                    "evidence": ["Mild pleural effusions noted", "Slight cardiomegaly"],
+                    "rationale": "Pleural effusions can be associated with edema, but the localized consolidation is less typical."
+                }},
+                {{
+                    "condition": "Malignancy",
+                    "probability": 0.10,
+                    "evidence": ["Irregular borders of the opacity"],
+                    "rationale": "While less likely, the irregular border warrants consideration of a malignant process."
+                }}
+            ]
+        }}
+        """
+        response = model.generate_content(prompt)
+        # Clean and parse the JSON output from the model's text response
+        json_text = response.text.strip().replace("```json", "").replace("```", "")
+        return json.loads(json_text)
+
+    except Exception as e:
+        print(f"Error generating differential diagnosis: {e}")
+        return None
 
 def extract_findings_and_keywords(analysis_text):
     """Extract findings and keywords from the analysis text with enhanced processing"""

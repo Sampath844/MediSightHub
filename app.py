@@ -30,7 +30,8 @@ from utils import (
     generate_report,
     search_pubmed,
     generate_visual_prompt_heatmap,
-    process_diagnosis_file
+    process_diagnosis_file,
+    generate_differential_diagnosis
 )
 from chat_system import render_chat_interface
 from report_qa_chat import ReportQASystem
@@ -75,10 +76,36 @@ if uploaded and st.button("Analyze & Generate Report"):
     # Display summary
     st.subheader("Analysis Summary")
     st.write(analysis["analysis"])
-    
-    if diagnosis_text:
-        st.subheader("Radiologist Diagnosis")
-        st.info(diagnosis_text[:500] + "..." if len(diagnosis_text) > 500 else diagnosis_text)
+    # --- NEW INTEGRATION ---
+    st.subheader("🤖 AI-Powered Differential Diagnosis")
+    with st.spinner("Calculating diagnostic probabilities..."):
+        ddx_data = generate_differential_diagnosis(
+            analysis["analysis"],
+            analysis["findings"],
+            GEMINI_KEY
+        )
+
+    if ddx_data and "diagnoses" in ddx_data:
+        # Create a DataFrame for better display
+        import pandas as pd
+        df = pd.DataFrame(ddx_data["diagnoses"])
+        df['probability'] = df['probability'] * 100 # Convert to percentage
+
+        st.write("The AI has calculated the following diagnostic probabilities based on the available evidence:")
+
+        # Display data in a more visually appealing way
+        for index, row in df.sort_values(by='probability', ascending=False).iterrows():
+            st.progress(int(row['probability']))
+            st.markdown(f"**{row['condition']} ({row['probability']:.1f}%)**")
+            st.markdown(f"*{row['rationale']}*")
+            with st.expander("Show Supporting Evidence"):
+                for evidence in row['evidence']:
+                    st.info(f"- {evidence}")
+    else:
+        st.warning("Could not generate a probabilistic differential diagnosis.")
+        if diagnosis_text:
+            st.subheader("Radiologist Diagnosis")
+            st.info(diagnosis_text[:500] + "..." if len(diagnosis_text) > 500 else diagnosis_text)
 
     # Save analysis with diagnosis
     save_analysis({
