@@ -1,0 +1,31 @@
+# Core dependencies for DoctorAI Medical Platform
+streamlit>=1.28.0
+google-generativeai>=0.7.0
+Pillow>=10.0.0
+numpy>=1.24.0
+opencv-python>=4.8.0
+matplotlib>=3.7.0
+reportlab>=4.0.0
+python-dotenv>=1.0.0
+
+# Medical image processing
+pydicom>=2.4.0
+nibabel>=5.1.0
+
+# Document processing
+PyPDF2>=3.0.0
+python-docx>=0.8.11
+PyMuPDF>=1.23.0
+
+# Scientific computing and data analysis
+pandas>=2.0.0
+scipy>=1.11.0
+
+# Optional: For PubMed searches
+biopython>=1.81
+
+# Optional: For enhanced image processing
+scikit-image>=0.21.0
+
+# Optional: For additional AI capabilities
+huggingface-hub>=0.17.0

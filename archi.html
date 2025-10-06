@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DoctorAI System Architecture Flowchart</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+        :root {
+            --font-family: 'Roboto', sans-serif;
+            --color-bg: #ffffff;
+            --color-border: #b0bec5;
+            --color-text-primary: #263238;
+            --color-text-secondary: #546e7a;
+            --color-process: #e3f2fd;
+            --color-process-border: #42a5f5;
+            --color-data: #e8f5e9;
+            --color-data-border: #66bb6a;
+            --color-decision: #fff3e0;
+            --color-decision-border: #ffa726;
+            --color-api: #f3e5f5;
+            --color-api-border: #ab47bc;
+            --color-output: #e0f2f1;
+            --color-output-border: #26a69a;
+            --arrow-color: #78909c;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: #eceff1;
+            display: flex;
+            justify-content: center;
+            padding: 2rem;
+            color: var(--color-text-primary);
+        }
+
+        .flowchart-container {
+            background-color: var(--color-bg);
+            padding: 2.5rem;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 1600px;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 2rem 1rem;
+            align-items: center;
+        }
+
+        .node {
+            border: 1.5px solid var(--color-border);
+            background-color: #fafafa;
+            border-radius: 4px;
+            padding: 0.8rem 1rem;
+            text-align: center;
+            position: relative;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .node-title {
+            font-weight: 700;
+            font-size: 1em;
+            margin-bottom: 0.3rem;
+        }
+
+        .node-detail {
+            font-size: 0.8em;
+            color: var(--color-text-secondary);
+        }
+
+        /* Node Types */
+        .input { background-color: var(--color-data); border-color: var(--color-data-border); transform: skew(-15deg); }
+        .process { background-color: var(--color-process); border-color: var(--color-process-border); }
+        .decision { background-color: var(--color-decision); border-color: var(--color-decision-border); border-radius: 50px; }
+        .api-call { background-color: var(--color-api); border-color: var(--color-api-border); border-style: dashed; }
+        .output { background-color: var(--color-output); border-color: var(--color-output-border); }
+        .storage { border-radius: 0; border: 3px double var(--color-border); padding-top: 15px; padding-bottom: 15px; }
+
+        .grid-span-2 { grid-column: span 2; }
+        .grid-span-3 { grid-column: span 3; }
+        .grid-span-5 { grid-column: span 5; }
+
+        /* Arrows */
+        .arrow {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .arrow-line {
+            position: absolute;
+            background: var(--arrow-color);
+            z-index: 1;
+        }
+
+        .arrow-line.right {
+            height: 2px;
+            width: 100%;
+            left: 50%;
+        }
+
+        .arrow-line.down {
+            width: 2px;
+            height: 100%;
+            top: 50%;
+        }
+
+        .arrow-line::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-style: solid;
+        }
+
+        .arrow-line.right::after {
+            top: -4px;
+            right: -1px;
+            border-width: 5px 0 5px 10px;
+            border-color: transparent transparent transparent var(--arrow-color);
+        }
+
+        .arrow-line.down::after {
+            left: -4px;
+            bottom: -1px;
+            border-width: 10px 5px 0 5px;
+            border-color: var(--arrow-color) transparent transparent transparent;
+        }
+        
+        .arrow-label {
+            position: absolute;
+            background: var(--color-bg);
+            padding: 2px 8px;
+            font-size: 11px;
+            font-style: italic;
+            color: var(--color-text-secondary);
+            z-index: 2;
+        }
+        
+        .placeholder { visibility: hidden; }
+        .connector-hub { border: none; background: none; }
+        .connector-hub.vertical-line {
+            width: 2px;
+            background-color: var(--arrow-color);
+            height: 100%;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="flowchart-container">
+        <!-- ROW 1: INPUTS -->
+        <div class="node input grid-span-2">
+            <div class="node-title">Medical Image Input</div>
+            <div class="node-detail">DICOM, NIfTI, JPG, PNG</div>
+        </div>
+        <div class="placeholder"></div>
+        <div class="node input grid-span-2">
+            <div class="node-title">Diagnosis Report Input</div>
+            <div class="node-detail">(Optional) PDF, DOCX, IMG</div>
+        </div>
+        
+        <!-- ROW 2: ARROWS DOWN -->
+        <div class="arrow grid-span-2"><div class="arrow-line down"></div></div>
+        <div class="placeholder"></div>
+        <div class="arrow grid-span-2"><div class="arrow-line down"></div></div>
+
+        <!-- ROW 3: PARALLEL PROCESSING -->
+        <div class="node process grid-span-2">
+            <div class="node-title">Image Pre-processing</div>
+            <div class="node-detail">utils.py: process_file()<br/>DICOM Windowing, NIfTI Slicing</div>
+        </div>
+        <div class="arrow"><div class="arrow-line right"></div><div class="arrow-label">Standardized PIL Image</div></div>
+        <div class="node process grid-span-2">
+            <div class="node-title">Context Extraction</div>
+            <div class="node-detail">utils.py: process_diagnosis_file()<br/>PyMuPDF text extraction / Gemini OCR</div>
+        </div>
+        
+        <!-- ROW 4: MERGE POINT -->
+        <div class="connector-hub"><div class="connector-hub vertical-line"></div></div>
+        <div class="placeholder grid-span-3"></div>
+        <div class="connector-hub"><div class="connector-hub vertical-line"></div></div>
+        
+        <!-- ROW 5: CORE ANALYSIS -->
+        <div class="placeholder"></div>
+        <div class="node process grid-span-3">
+            <div class="node-title">Comparative Analysis Core</div>
+            <div class="node-detail">utils.py: analyze_image()<br/>Image + Diagnosis Context sent as a single prompt</div>
+        </div>
+        <div class="placeholder"></div>
+        
+        <!-- ROW 6: API CALL AND DATA STRUCTURING -->
+        <div class="arrow grid-span-5"><div class="arrow-line down"></div></div>
+        <div class="placeholder"></div>
+        <div class="node api-call grid-span-3">
+            <div class="node-title">Gemini 2.5 Pro API Call (Analysis)</div>
+            <div class="node-detail">Receives comprehensive text analysis</div>
+        </div>
+        <div class="placeholder"></div>
+        <div class="arrow grid-span-5"><div class="arrow-line down"></div></div>
+        <div class="placeholder"></div>
+        <div class="node process grid-span-3">
+            <div class="node-title">Structured Data Extraction</div>
+            <div class="node-detail">utils.py: extract_findings_and_keywords()<br/>Output: { findings: [...], keywords: [...] }</div>
+        </div>
+        <div class="placeholder"></div>
+        
+        <!-- ROW 7: XAI HEATMAP SUB-PROCESS -->
+        <div class="arrow grid-span-5"><div class="arrow-line down"></div><div class="arrow-label">Findings + Original Image</div></div>
+        <div class="node process">
+            <div class="node-title">XAI Visual Prompting</div>
+            <div class="node-detail">utils.py: generate_visual_prompt_heatmap()</div>
+        </div>
+        <div class="arrow"><div class="arrow-line right"></div></div>
+        <div class="node api-call">
+            <div class="node-title">Gemini API Call (XAI)</div>
+            <div class="node-detail">Requests JSON coordinates</div>
+        </div>
+        <div class="arrow"><div class="arrow-line right"></div><div class="arrow-label">JSON Coordinates</div></div>
+        <div class="node output">
+            <div class="node-title">Heatmap Generation</div>
+            <div class="node-detail">Creates precise visual overlay</div>
+        </div>
+        
+        <!-- ROW 8: CONVERGENCE & STORAGE -->
+        <div class="arrow grid-span-5"><div class="arrow-line down"></div><div class="arrow-label">Full Analysis Object</div></div>
+        <div class="placeholder"></div>
+        <div class="node storage grid-span-3">
+            <div class="node-title">Data Persistence</div>
+            <div class="node-detail">Saves to analysis_store.json</div>
+        </div>
+        <div class="placeholder"></div>
+
+        <!-- ROW 9: OUTPUT BRANCHES -->
+        <div class="connector-hub grid-span-5"><div class="connector-hub vertical-line"></div></div>
+        
+        <!-- ROW 10: FINAL OUTPUTS -->
+        <div class="node output">
+             <div class="node-title">UI Rendering</div>
+            <div class="node-detail">app.py<br/>Displays results in Streamlit</div>
+        </div>
+        <div class="arrow"><div class="arrow-line right"></div></div>
+        <div class="node output">
+             <div class="node-title">PDF Report Generation</div>
+            <div class="node-detail">utils.py: generate_report()<br/>Includes PubMed Refs</div>
+        </div>
+        <div class="arrow"><div class="arrow-line right"></div></div>
+        <div class="node output grid-span-2">
+             <div class="node-title">Contextual Seeding</div>
+            <div class="node-detail">Provides findings to Chat & Q&A modules</div>
+        </div>
+    </div>
+</body>
+</html>
