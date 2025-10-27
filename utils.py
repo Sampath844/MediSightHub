@@ -117,7 +117,7 @@ def process_image_ocr(uploaded_file):
         model = genai.GenerativeModel('gemini-2.5-pro')
 
         prompt = [
-            "Extract all text from this medical document/report. Please provide the text exactly as written, maintaining the structure and format. If this is a medical report or diagnosis, extract all findings, impressions, and recommendations.",
+            "Extract all text from this medical document/report. Please provide the text exactly as written, maintaining the structure and format. If this is a medical report or diagnosis, extract all findings, impressions, and recommendations. Ignore any personal information",
             Image.open(io.BytesIO(img_bytes))
         ]
 
@@ -293,24 +293,17 @@ def generate_visual_prompt_heatmap(image, findings, api_key):
         prompt = f"""
         Analyze the provided medical image in the context of the following findings: {findings}.
 
-        Imagine a 5x5 grid overlaid on the image (rows A-E, columns 1-5).
+        Imagine a 10x10 grid overlaid on the image (rows A-J, columns 1-10).
         For each of the key findings, identify the grid cells that contain the most prominent evidence of that finding.
 
-        Your response MUST be a JSON object containing a single key "locations",
-        which is a list of dictionaries. Each dictionary must have two keys:
-        - "finding": The name of the finding (e.g., "nodule", "opacity").
-        - "cells": A list of strings representing the grid cells (e.g., ["C3", "D3"]).
-
+        Your response MUST be a JSON object...
+        ...
         Example JSON response:
         {{
           "locations": [
             {{
-              "finding": "pulmonary nodule",
-              "cells": ["B2", "C2"]
-            }},
-            {{
-              "finding": "pleural effusion",
-              "cells": ["E1", "E2", "E3"]
+              "finding": "femur fracture",
+              "cells": ["F5", "F6", "G5", "G6"]
             }}
           ]
         }}
@@ -338,7 +331,7 @@ def generate_visual_prompt_heatmap(image, findings, api_key):
         height, width, _ = image_array.shape
         attention_mask = np.zeros((height, width), dtype=np.float32)
 
-        grid_size = 5
+        grid_size = 10
         cell_height, cell_width = height // grid_size, width // grid_size
 
         for loc in locations_data.get("locations", []):
@@ -347,7 +340,7 @@ def generate_visual_prompt_heatmap(image, findings, api_key):
                 row_char = cell[0].upper()
                 col_num = int(cell[1:]) - 1
                 
-                if 'A' <= row_char <= 'E' and 0 <= col_num < grid_size:
+                if 'A' <= row_char <= 'J' and 0 <= col_num < grid_size:
                     row_idx = ord(row_char) - ord('A')
                     
                     y_start = row_idx * cell_height
@@ -362,7 +355,7 @@ def generate_visual_prompt_heatmap(image, findings, api_key):
         if np.max(attention_mask) > 0:
             # Apply a strong Gaussian blur to create a smooth, blob-like heatmap
             # The kernel size is proportional to the image size.
-            blur_kernel_size = int(min(height, width) / 5)
+            blur_kernel_size = int(min(height, width) / 25)
             if blur_kernel_size % 2 == 0: blur_kernel_size += 1 # Kernel must be odd
             
             attention_mask = cv2.GaussianBlur(attention_mask, (blur_kernel_size, blur_kernel_size), 0)
@@ -375,7 +368,7 @@ def generate_visual_prompt_heatmap(image, findings, api_key):
             colored_heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
             
             # Blend the heatmap with the original image
-            overlay = cv2.addWeighted(image_array, 0.5, colored_heatmap, 0.5, 0)
+            overlay = cv2.addWeighted(image_array, 0.6, colored_heatmap, 0.4, 0)
             
             return Image.fromarray(overlay)
         else:
